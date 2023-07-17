@@ -34,7 +34,7 @@ Now it’s time to clone the application repository to your local machine or to 
 
 1.	Clone the CodeCommit repository container-security-demo-app to your local machine or AWS Cloud9, depending on what you want to use.
 
-		   git clone https://git-codecommit.eu-west-1.amazonaws.com/v1/repos/container-security-demo-app
+		   git clone https://git-codecommit.<REGION>.amazonaws.com/v1/repos/container-security-demo-app
       
 2.	We also want an application to use with the pipeline. We will clone the popular application 2048 from Github to use.
 		   
@@ -67,11 +67,14 @@ NB: the 2048 application comes under the MIT license.
 
 7.	Now if you go to look at the pipeline by selecting CodePipeline from the AWS Console and select the container-security-demo-pipeline, you can see the change being submitted through the pipeline.
 
-The image is tested for vulnerabilities, secrets, and linting errors. If all tests pass, then the container image is built, tagged, and added to the Amazon ECR private repository.
+	The image is tested for vulnerabilities, secrets, and linting errors. If all tests pass, then the container image is built, tagged, and added to the Amazon ECR private repository.
 
-If there are any vulnerabilities at the specified failure level or above, then the pipeline stops and the image won’t be added to the Amazon ECR repository.
+	If there are any vulnerabilities at the specified failure level or above, then the pipeline stops and the image won’t be added to the Amazon ECR repository.
 
-At the time of testing the following image was used in the Dockerfile to replace the default image “public.ecr.aws/nginx/nginx:1-alpine-perl” and the ADD commands in the Dockerfile were replaced by the COPY command. With these 2 substitutions the pipeline completed successfully. 
+	At the time of testing the following image was used in the Dockerfile to replace the default image
+		 “public.ecr.aws/nginx/nginx:1-alpine-perl”
+	and the "ADD" commands in the Dockerfile were replaced by the "COPY" command. 
+	With these 2 substitutions the pipeline completed successfully. 
 
 8.	If there are vulnerabilities only at the audit level and below, those are logged directly with Security Hub so that there is an audit trail for the future. To see these, go to Security Hub and add a filter on findings (Product Name is Aqua Security).
 Changing the image for a new version is easy by editing the Dockerfile.

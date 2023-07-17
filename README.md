@@ -13,10 +13,10 @@ If you do not have Security Hub setup in your account, please follow the instruc
 aws s3 sync environment s3://<bucketname> —region <region name>
 
 5.	There are 2 zipfiles required which need to be created in the following way.
-		```cd initial-commit  
-		   zip -rj ../devsecops/initial-commit.zip ./*  
-		   cd ../trivy-build  
-		   zip -rj ../devsecops/trivy-build.zip ./*  
+		```cd initial-commit <br/> 
+		   zip -rj ../devsecops/initial-commit.zip ./* <br/>
+		   cd ../trivy-build <br/>
+		   zip -rj ../devsecops/trivy-build.zip ./* <br/>
 		```
 
 6.	Upload the entire devsecops folder to the bucket.

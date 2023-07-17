@@ -1,9 +1,11 @@
 ## aws-container-security-pipeline-dso-ecs
 
 1.	Clone the repository.
+
 		   git clone https://github.com/aws-samples/aws-container-security-pipeline-dso-ecs.git
 
 2.	The demo is using nested AWS CloudFormation templates and some configuration files that need to be uploaded to an Amazon Simple Storage Service (Amazon S3) bucket. Create a bucket in the same Region that you’ll create the demonstration in, the bucket doesn’t need to be public facing.
+
 		   aws s3 mb s3://<bucketname> --region <region name>
 
 3.	Security Hub is used in this demonstration and has an integration with Trivy. To enable this, go to Security Hub in the AWS Management Console and select Integrations from the menu on the left. Filter for Aqua Security and select Accept findings.
@@ -82,7 +84,9 @@ Cleanup
 To clean up the stack please complete the following actions:
 
 •	Delete all objects from the Amazon S3 bucket that was created for CodePipeline, which is found in the AWS CloudFormation stack for DSO-Initial-Pipeline under Resources as the Pipeline Bucket (i.e., container-security-demo-<accountid>-<region>-artifacts).
+
 •	Delete all images from the Amazon ECR Private repositories container-demo-security-sample and container-security-demo-trivy.
+
 •	Now go to the AWS Cloudformation console and delete the stack that you created from the AWS CloudFormation yaml.
 
 ## Security

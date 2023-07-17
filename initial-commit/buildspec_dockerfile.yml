@@ -1,0 +1,27 @@
+version: 0.2
+
+phases:
+   install:
+    runtime-versions:
+       python: 3.7
+   pre_build:
+        commands:
+        - curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add -
+        - echo Copying hadolint.yml to the application directory
+        - cp hadolint.yml $CODEBUILD_SRC_DIR_AppSource/hadolint.yml
+        - echo Switching to the application directory
+        - cd $CODEBUILD_SRC_DIR_AppSource
+        - pwd
+        - which docker
+        - echo Pulling the hadolint docker image
+        - docker pull public.ecr.aws/zomato/hadolint/hadolint:v2.5.0-alpine
+   build:
+        commands:
+        - echo Build started on `date`
+        - echo Scanning with Hadolint...          
+        - result=`docker run --rm -i -v ${PWD}/hadolint.yml:/.hadolint.yaml public.ecr.aws/zomato/hadolint/hadolint:v2.5.0-alpine hadolint -f json - < Dockerfile`
+   post_build:
+        commands:
+        - echo $result
+        - aws ssm put-parameter --name "codebuild-dockerfile-results" --type "String" --value "$result" --overwrite
+        - echo Build completed on `date`

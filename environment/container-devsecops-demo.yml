@@ -1,0 +1,90 @@
+AWSTemplateFormatVersion: '2010-09-09'
+
+Description: This AWS CloudFormation Template that configures the Container DevSecOps Demo Environment.
+
+Parameters:
+
+  EnvironmentName:
+    Type: String
+    Default: container-security-demo
+    Description: Prefix for resources
+
+  DevSecOpsResourcesBucket:
+    Type: String
+    Default: devsecopsdemo
+    Description: Bucket to store required build resources
+
+  FailWhen:
+    Type: String
+    Default: HIGH
+    AllowedValues:
+      - LOW
+      - MEDIUM
+      - HIGH
+      - CRITICAL
+    Description: Threshold to fail the pipeline if app image has vulnerabilities
+
+  Auditlevel:
+    Type: String
+    Default: MEDIUM
+    AllowedValues:
+      - LOW
+      - MEDIUM
+      - HIGH
+      - CRITICAL
+    Description: Image Vulnerabilities of this level are sent to SecurityHub for audit tracking.
+
+Resources:
+
+  TrivyVpcStack:
+    Type: AWS::CloudFormation::Stack	
+    Properties:
+      Parameters:
+        EnvironmentName: !Ref EnvironmentName
+
+      TemplateURL: !Sub https://${DevSecOpsResourcesBucket}.s3.amazonaws.com/trivy-vpc.yml
+
+
+  TrivyStack:
+    DependsOn: TrivyVpcStack
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      Parameters:
+         ResourceName: !Ref EnvironmentName
+         DevSecOpsResources: !Ref DevSecOpsResourcesBucket
+
+      TemplateURL: !Sub https://${DevSecOpsResourcesBucket}.s3.amazonaws.com/trivy-fargate.yml
+
+  ECSClusterStack:
+    DependsOn: TrivyStack
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      Parameters:
+        ResourceName: !Ref EnvironmentName
+
+      TemplateURL: !Sub https://${DevSecOpsResourcesBucket}.s3.amazonaws.com/fargatecluster.yml
+
+  ECSServiceStack:
+    DependsOn: ECSClusterStack
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      Parameters:
+        ResourceName: !Ref EnvironmentName
+
+      TemplateURL: !Sub https://${DevSecOpsResourcesBucket}.s3.amazonaws.com/fargateservice.yml
+
+  InitialPipeline:
+    DependsOn: ECSServiceStack
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      Parameters:
+        DevSecOpsResources: !Ref DevSecOpsResourcesBucket
+        ResourceName: !Ref EnvironmentName
+        FailWhen: !Ref FailWhen
+        Auditlevel: !Ref Auditlevel
+
+      TemplateURL: !Sub https://${DevSecOpsResourcesBucket}.s3.amazonaws.com/pipeline-setup.yml
+
+
+
+Outputs: {}

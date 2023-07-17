@@ -1,0 +1,35 @@
+version: 0.2
+
+phases:
+  install:
+    runtime-versions:
+      python: 3.7
+      
+  pre_build:
+    commands:
+      - curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add -
+      - apt-get update && apt-get install -y python-dev jq wget net-tools apt-transport-https gnupg
+      - wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key | apt-key add -
+      - echo deb https://aquasecurity.github.io/trivy-repo/deb bionic main | tee -a /etc/apt/sources.list.d/trivy.list
+      - apt-get update && apt-get install -y trivy
+      - curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
+      - python3 get-pip.py
+      - pip3 install awscli
+      - $(aws ecr get-login --no-include-email)
+      - IMAGE_TAG_FOR_AUDIT=`aws ssm get-parameter --name "destinationCommit" --query "Parameter.Value" --output text`
+      - curl https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/asff.tpl -o asff.tpl 
+      - ls asff.tpl
+
+  build:
+    commands:
+      - IMAGE=$AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$IMAGE_REPO_NAME
+      - docker build $CODEBUILD_SRC_DIR_AppSource -t $IMAGE:$IMAGE_TAG_FOR_AUDIT
+      - IMAGE=$IMAGE:$IMAGE_TAG_FOR_AUDIT
+      - docker push $IMAGE
+  post_build:
+    commands:
+      - trivy -f json image --server $TRIVY_CLI_URL $IMAGE -o scan_results.json
+      - trivy -f template --template "@asff.tpl"  image --severity $AUDIT_LEVEL --server $TRIVY_CLI_URL $IMAGE -o audit.asff  && cat audit.asff | jq '.Findings' > report.asff
+      - if cat scan_results.json |  jq -r --arg threshold $AUDIT_LEVEL '.Results[].Vulnerabilities[]?.Severity ==$threshold' | grep -q true; then aws securityhub batch-import-findings --findings file://report.asff
+         &&  echo Report Sent to Security Hub on `date`; fi
+      - if cat scan_results.json |  jq -r --arg threshold $FAIL_WHEN '.Results[].Vulnerabilities[]?.Severity ==$threshold' | grep -q true; then echo "Vulnerabilties Found" && exit 1; fi

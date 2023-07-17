@@ -9,9 +9,10 @@
 		   aws s3 mb s3://<bucketname> --region <region name>
 
 3.	Security Hub is used in this demonstration and has an integration with Trivy. To enable this, go to Security Hub in the AWS Management Console and select Integrations from the menu on the left. Filter for Aqua Security and select Accept findings.
-If you do not have Security Hub setup in your account, please follow the instructions here.
+If you do not have Security Hub setup in your account, please follow the instructions [here](https://docs.aws.amazon.com/securityhub/latest/userguide/securityhub-settingup.html).
 
 4.	Upload files in the environment directory directly to the new bucket. This can be done via the Console or via the CLI as shown.
+
 		   aws s3 sync environment s3://<bucketname> —region <region name>
 
 5.	There are 2 zipfiles required which need to be created in the following way.

@@ -15,7 +15,6 @@ aws s3 sync environment s3://<bucketname> —region <region name>
 5.	There are 2 zipfiles required which need to be created in the following way.
 
 		   cd initial-commit
- 
 		   zip -rj ../devsecops/initial-commit.zip ./*
 
 		   cd ../trivy-build 
